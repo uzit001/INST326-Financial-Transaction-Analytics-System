@@ -697,3 +697,224 @@ def identify_spending_spikes(transactions: list, spending_limit: float = 100) ->
 
     return report.strip()
 
+from datetime import datetime
+from typing import Any, Dict, List, Tuple
+
+# Data Cleaning Functions - Kevin Miele
+# 1-4
+# 1) normalize_date_format
+def normalize_date_format(row: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Normalize row['date'] (or 'Date') to ISO 'YYYY-MM-DD'.
+
+    Tries, in order:
+      - %Y-%m-%d   (e.g., 2025-10-11)
+      - %Y/%m/%d   (e.g., 2025/10/11)
+      - %m/%d/%Y   (e.g., 10/11/2025)
+      - %m-%d-%Y   (e.g., 10-11-2025)
+
+    Returns:
+      Dict[str, Any]: NEW row with 'date' set to ISO 'YYYY-MM-DD'. Removes 'Date' if present.
+
+    Raises:
+      KeyError: if neither 'date' nor 'Date' exists.
+      ValueError: if the date cannot be parsed by the supported formats.
+      TypeError: if the date value is not a string-like value.
+    """
+    if "date" not in row and "Date" not in row:
+        raise KeyError("normalize_date_format: expected key 'date' or 'Date'")
+
+    raw = row.get("date", row.get("Date"))
+    if raw is None:
+        raise ValueError("normalize_date_format: date value is None")
+    s = str(raw).strip()
+    if not s:
+        raise ValueError("normalize_date_format: date cannot be empty")
+
+    fmts = ("%Y-%m-%d", "%Y/%m/%d", "%m/%d/%Y", "%m-%d-%Y")
+    parsed = None
+    for fmt in fmts:
+        try:
+            parsed = datetime.strptime(s, fmt)
+            break
+        except ValueError:
+            continue
+    if parsed is None:
+        raise ValueError(f"normalize_date_format: unsupported date format '{raw}'")
+
+    out = dict(row)
+    out["date"] = parsed.strftime("%Y-%m-%d")
+    out.pop("Date", None)
+    return out
+
+
+# 2) clean_transaction_description
+def clean_transaction_description(row: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Clean row['description'] (or 'Description'/'source'):
+      - trim and collapse internal spaces
+      - remove ONE trailing code-like token (e.g., '#123', 'TRN0001', 'ORD-9981')
+
+    Returns:
+      Dict[str, Any]: NEW row with 'description' (standard key). Removes 'Description'/'source'.
+
+    Raises:
+      KeyError: if no description-like key is present.
+      ValueError: if the cleaned description is empty.
+    """
+    if not any(k in row for k in ("description", "Description", "source")):
+        raise KeyError("clean_transaction_description: expected 'description', 'Description', or 'source'")
+
+    raw = row.get("description", row.get("Description", row.get("source")))
+    s = " ".join(str(raw).strip().split())
+    if not s:
+        raise ValueError("clean_transaction_description: description cannot be empty")
+
+    tokens = s.split(" ")
+    if tokens:
+        last = tokens[-1]
+        digit_count = sum(ch.isdigit() for ch in last)
+        if digit_count >= 3 or last.startswith("#") or "-" in last:
+            tokens.pop()
+
+    cleaned = " ".join(tokens).strip()
+    if not cleaned:
+        raise ValueError("clean_transaction_description: description became empty after cleaning")
+
+    out = dict(row)
+    out["description"] = cleaned
+    out.pop("Description", None)
+    out.pop("source", None)
+    return out
+
+
+# 3) standardize_category_names
+def standardize_category_names(row: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Map row['category'] (or 'Category'):
+
+      Subscription, Bills, Food, Groceries, Entertainment,
+      Transportation, Utilities, Healthcare, Shopping, Debt, Income, Other
+
+    Exact/contains checks cover common variants
+    (e.g., 'subscr' → 'Subscription', 'Dining' → 'Food', 'retail' → 'Shopping').
+
+    Returns:
+      Dict[str, Any]: NEW row with standard 'category'. Removes 'Category' if present.
+
+    Raises:
+      KeyError: if no category-like key is present.
+      ValueError: if the category is empty.
+    """
+    if "category" not in row and "Category" not in row:
+        raise KeyError("standardize_category_names: expected 'category' or 'Category'")
+
+    raw = row.get("category", row.get("Category"))
+    s = str(raw).strip().lower()
+    if not s:
+        raise ValueError("standardize_category_names: category cannot be empty")
+
+    mapping = {
+        "subscription": "Subscription", "subscriptions": "Subscription", "subs": "Subscription", "subscr": "Subscription",
+        "bill": "Bills", "bills": "Bills",
+        "food": "Food", "dining": "Food", "restaurant": "Food", "coffee": "Food", "cafe": "Food", "cafes": "Food",
+        "groceries": "Groceries", "grocery": "Groceries",
+        "entertainment": "Entertainment",
+        "transport": "Transportation", "transportation": "Transportation", "uber": "Transportation",
+        "lyft": "Transportation", "gas": "Transportation", "fuel": "Transportation",
+        "utilities": "Utilities", "internet": "Utilities", "electric": "Utilities", "water": "Utilities",
+        "health": "Healthcare", "healthcare": "Healthcare",
+        "shopping": "Shopping", "retail": "Shopping",
+        "debt": "Debt", "loan": "Debt",
+        "income": "Income", "salary": "Income",
+        "other": "Other",
+    }
+
+    if s in mapping:
+        std = mapping[s]
+    else:
+        
+        if "subscr" in s:
+            std = "Subscription"
+        elif "groc" in s:
+            std = "Groceries"
+        elif any(k in s for k in ("restaur", "dining", "cafe", "coffee", "food")):
+            std = "Food"
+        elif any(k in s for k in ("transport", "uber", "lyft", "gas", "fuel")):
+            std = "Transportation"
+        elif any(k in s for k in ("utilit", "internet", "electric", "water")):
+            std = "Utilities"
+        elif "retail" in s or "shop" in s:
+            std = "Shopping"
+        elif any(k in s for k in ("health", "care")):
+            std = "Healthcare"
+        elif any(k in s for k in ("loan", "debt")):
+            std = "Debt"
+        elif any(k in s for k in ("salary", "pay", "income")):
+            std = "Income"
+        else:
+            std = str(raw).strip().title()
+            
+    out = dict(row)
+    out["category"] = std
+    out.pop("Category", None)
+    return out
+
+
+# 4) remove_duplicate_transactions
+def remove_duplicate_transactions(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Remove duplicates after normalization/standardization.
+
+    Duplicate key (stable, order-preserving):
+      (date_iso, amount_in_cents, cleaned_description_lower, canonical_category, account_lower)
+
+    Notes:
+      • Tolerates 'Amount'/'amount', 'Date'/'date', 'Description'/'description'/'source',
+        'Category'/'category', 'Account'/'account'.
+      • Does NOT mutate original rows.
+
+    Returns:
+      List[Dict[str, Any]]: New list with first occurrences kept.
+    """
+    seen: set[Tuple[Any, ...]] = set()
+    unique: List[Dict[str, Any]] = []
+
+    for idx, row in enumerate(rows):
+        # for the key, compute normalized fields without changing the original row
+        # -- date (ISO)
+        try:
+            date_iso = normalize_date_format(row)["date"]
+        except Exception:
+            # fall back to raw if normalize fails
+            date_iso = str(row.get("date", row.get("Date", ""))).strip()
+
+        # -- description (cleaned)
+        try:
+            desc_clean = clean_transaction_description(row)["description"]
+        except Exception:
+            desc_clean = str(row.get("description", row.get("Description", row.get("source", "")))).strip()
+
+        # -- category
+        try:
+            cat_std = standardize_category_names(row)["category"]
+        except Exception:
+            cat_std = str(row.get("category", row.get("Category", ""))).strip()
+
+        # -- amount (numeric → cents)
+        amt_raw = row.get("amount", row.get("Amount", 0))
+        try:
+            amt_float = float(amt_raw)
+        except Exception:
+            amt_float = 0.0
+        amt_cents = int(round(amt_float * 100))
+
+        # -- account (case-insensitive)
+        account = str(row.get("account", row.get("Account", "")) or "").strip().lower()
+
+        key = (date_iso, amt_cents, desc_clean.lower(), cat_std, account)
+        if key not in seen:
+            seen.add(key)
+            unique.append(row)
+
+    return unique
