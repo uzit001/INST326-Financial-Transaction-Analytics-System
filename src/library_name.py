@@ -1,3 +1,324 @@
+"""
+Financial Transaction Tracker - Function Library
+Course: INST326 Section 0302
+Team Members: Uzzam Tariq, Keven Day, Kevin Miele, Angelo Montagnino
+"""
+
+from datetime import datetime
+from typing import Union, Dict, List, Tuple
+
+# ============================================================================
+# DATA VALIDATION FUNCTIONS
+# ============================================================================
+
+#1.
+def validate_transaction_amount(amount: Union[int, float]) -> bool:
+    """
+    Validate that a transaction amount is positive and within reasonable bounds.
+    
+    This is a simple validation function that ensures transaction amounts
+    are valid numbers that make sense for financial transactions.
+    
+    Args:
+        amount (Union[int, float]): The transaction amount to validate
+        
+    Returns:
+        bool: True if amount is valid, False otherwise
+        
+    Raises:
+        TypeError: If amount is not a number (int or float)
+        
+    Examples:
+        >>> validate_transaction_amount(50.00)
+        True
+        >>> validate_transaction_amount(-10.00)
+        False
+        >>> validate_transaction_amount(0)
+        False
+    """
+    if not isinstance(amount, (int, float)):
+        raise TypeError(f"Amount must be a number, got {type(amount).__name__}")
+    
+    # Amount must be positive
+    if amount <= 0:
+        return False
+    
+    # Reasonable upper limit to catch data entry errors
+    if amount > 1000000:
+        return False
+    
+    return True
+
+#2.
+def validate_date_format(date_string: str, date_format: str = "%Y-%m-%d") -> bool:
+    """
+    Validate that a date string matches the expected format and represents a valid date.
+    
+    This is a medium complexity function that checks both format and logical validity
+    of dates, ensuring they exist and are not in the future (for financial transactions).
+    
+    Args:
+        date_string (str): The date string to validate
+        date_format (str): Expected date format. Defaults to "YYYY-MM-DD"
+        
+    Returns:
+        bool: True if date is valid and properly formatted, False otherwise
+        
+    Raises:
+        TypeError: If date_string is not a string
+        
+    Examples:
+        >>> validate_date_format("2025-10-11")
+        True
+        >>> validate_date_format("2025-13-45")
+        False
+        >>> validate_date_format("10/11/2025", "%m/%d/%Y")
+        True
+        >>> validate_date_format("2026-01-01")  # Future date
+        False
+    """
+    if not isinstance(date_string, str):
+        raise TypeError(f"Date must be a string, got {type(date_string).__name__}")
+    
+    try:
+        # Parse the date string
+        parsed_date = datetime.strptime(date_string, date_format)
+        
+        # Check if date is not in the future
+        if parsed_date > datetime.now():
+            return False
+        
+        # Check if date is not unreasonably old (before 1900)
+        if parsed_date.year < 1900:
+            return False
+            
+        return True
+        
+    except ValueError:
+        # Invalid date or format
+        return False
+
+#3.
+def validate_category(category: str, allow_custom: bool = False) -> bool:
+    """
+    Validate that a transaction category is recognized and properly formatted.
+    
+    This is a medium complexity function that checks categories against
+    a predefined list of valid financial categories and handles custom categories
+    when allowed.
+    
+    Args:
+        category (str): The category name to validate
+        allow_custom (bool): If True, allows categories not in predefined list.
+                            Defaults to False.
+        
+    Returns:
+        bool: True if category is valid, False otherwise
+        
+    Raises:
+        TypeError: If category is not a string
+        ValueError: If category is empty or only whitespace
+        
+    Examples:
+        >>> validate_category("Subscription")
+        True
+        >>> validate_category("food")  # Case insensitive
+        True
+        >>> validate_category("InvalidCategory")
+        False
+        >>> validate_category("My Custom Category", allow_custom=True)
+        True
+    """
+    if not isinstance(category, str):
+        raise TypeError(f"Category must be a string, got {type(category).__name__}")
+    
+    # Check for empty or whitespace-only strings
+    if not category.strip():
+        raise ValueError("Category cannot be empty or only whitespace")
+    
+    # Predefined valid categories (aligned with project requirements)
+    valid_categories = {
+        'subscription', 'subscriptions',
+        'bill', 'bills',
+        'food', 'groceries',
+        'entertainment',
+        'transportation', 'transport',
+        'utilities',
+        'healthcare', 'health',
+        'shopping', 'retail',
+        'debt', 'loan',
+        'income', 'salary',
+        'other'
+    }
+    
+    # Normalize category for comparison
+    normalized_category = category.strip().lower()
+    
+    # Check if it's a valid predefined category
+    if normalized_category in valid_categories:
+        return True
+    
+    # If custom categories are allowed and basic formatting is valid
+    if allow_custom:
+        # Must be reasonable length
+        if len(category) > 50:
+            return False
+        # Must contain at least one letter
+        if not any(c.isalpha() for c in category):
+            return False
+        return True
+    
+    return False
+
+#4.
+def validate_transaction_data(transaction_dict: dict) -> tuple[bool, list[str]]:
+    """
+    Comprehensively validate all fields in a transaction dictionary.
+    
+    This is a complex validation function that checks multiple fields,
+    accumulates error messages, and ensures the entire transaction record
+    is consistent and valid for storage.
+    
+    Args:
+        transaction_dict (dict): Dictionary containing transaction data with keys:
+                                - 'amount': transaction amount (required)
+                                - 'date': transaction date (required)
+                                - 'category': transaction category (required)
+                                - 'description': transaction description (optional)
+                                - 'account': account name/id (required)
+        
+    Returns:
+        tuple[bool, list[str]]: A tuple containing:
+                               - bool: True if all validations pass, False otherwise
+                               - list[str]: List of error messages (empty if valid)
+        
+    Raises:
+        TypeError: If transaction_dict is not a dictionary
+        
+    Examples:
+        >>> transaction = {
+        ...     'amount': 49.99,
+        ...     'date': '2025-10-11',
+        ...     'category': 'Subscription',
+        ...     'description': 'Netflix',
+        ...     'account': 'Checking'
+        ... }
+        >>> is_valid, errors = validate_transaction_data(transaction)
+        >>> is_valid
+        True
+        >>> errors
+        []
+        
+        >>> bad_transaction = {
+        ...     'amount': -50,
+        ...     'date': '2025-13-45',
+        ...     'category': ''
+        ... }
+        >>> is_valid, errors = validate_transaction_data(bad_transaction)
+        >>> is_valid
+        False
+        >>> len(errors) > 0
+        True
+    """
+    if not isinstance(transaction_dict, dict):
+        raise TypeError(f"Transaction must be a dictionary, got {type(transaction_dict).__name__}")
+    
+    errors = []
+    required_fields = ['amount', 'date', 'category', 'account']
+    
+    # Check for required fields
+    for field in required_fields:
+        if field not in transaction_dict:
+            errors.append(f"Missing required field: '{field}'")
+    
+    # If missing required fields, return early
+    if errors:
+        return False, errors
+    
+    # Validate amount
+    try:
+        if not validate_transaction_amount(transaction_dict['amount']):
+            errors.append("Invalid amount: must be positive and less than $1,000,000")
+    except TypeError as e:
+        errors.append(f"Amount validation error: {str(e)}")
+    
+    # Validate date
+    try:
+        if not validate_date_format(transaction_dict['date']):
+            errors.append("Invalid date: must be in YYYY-MM-DD format and not in the future")
+    except TypeError as e:
+        errors.append(f"Date validation error: {str(e)}")
+    
+    # Validate category
+    try:
+        if not validate_category(transaction_dict['category']):
+            errors.append("Invalid category: not a recognized category (use allow_custom=True for custom categories)")
+    except (TypeError, ValueError) as e:
+        errors.append(f"Category validation error: {str(e)}")
+    
+    # Validate account (basic check - must be non-empty string)
+    account = transaction_dict['account']
+    if not isinstance(account, str):
+        errors.append(f"Account must be a string, got {type(account).__name__}")
+    elif not account.strip():
+        errors.append("Account cannot be empty")
+    elif len(account) > 100:
+        errors.append("Account name is too long (max 100 characters)")
+    
+    # Validate optional description if present
+    if 'description' in transaction_dict:
+        description = transaction_dict['description']
+        if not isinstance(description, str):
+            errors.append(f"Description must be a string, got {type(description).__name__}")
+        elif len(description) > 500:
+            errors.append("Description is too long (max 500 characters)")
+    
+    # Check for amount and account consistency if account balance is provided
+    if 'account_balance' in transaction_dict:
+        try:
+            balance = float(transaction_dict['account_balance'])
+            amount = float(transaction_dict['amount'])
+            if balance < 0 and abs(balance) < amount:
+                errors.append("Warning: Transaction amount exceeds available balance")
+        except (ValueError, TypeError):
+            errors.append("Invalid account_balance: must be a number")
+    
+    # Return validation result
+    is_valid = len(errors) == 0
+    return is_valid, errors
+
+
+if __name__ == "__main__":
+    # Test the functions with some examples
+    print("Testing validation functions...\n")
+    
+    # Test 1: validate_transaction_amount
+    print("Test 1: validate_transaction_amount")
+    print(f"  50.00: {validate_transaction_amount(50.00)}")
+    print(f"  -10.00: {validate_transaction_amount(-10.00)}")
+    
+    # Test 2: validate_date_format
+    print("\nTest 2: validate_date_format")
+    print(f"  '2025-10-11': {validate_date_format('2025-10-11')}")
+    print(f"  '2025-13-45': {validate_date_format('2025-13-45')}")
+    
+    # Test 3: validate_category
+    print("\nTest 3: validate_category")
+    print(f"  'Subscription': {validate_category('Subscription')}")
+    print(f"  'InvalidCat': {validate_category('InvalidCat')}")
+    
+    # Test 4: validate_transaction_data
+    print("\nTest 4: validate_transaction_data")
+    good_transaction = {
+        'amount': 49.99,
+        'date': '2025-10-11',
+        'category': 'Subscription',
+        'description': 'Netflix',
+        'account': 'Checking'
+    }
+    is_valid, errors = validate_transaction_data(good_transaction)
+    print(f"  Valid transaction: {is_valid}, Errors: {errors}")
+
 # import list
 import csv
 # 1-5 Keven Day 
