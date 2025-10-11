@@ -169,3 +169,210 @@ def export_to_csv(data, filename):
             writer.writerow(row)
 
     print(f"Data successfully exported to '{filename}'")
+    
+# Data transformation functions - Angelo Montagnino
+# 1-5
+# 1 - Sum spending by category
+def calculate_category_totals(transactions:list) -> dict : 
+    """
+    Calculates total spending per category.
+
+    Args:
+        transactions (list): A list of dictionaries with at least 'amount' and 'category' keys.
+
+    Returns:
+        dict: A dictionary where keys are categories and values are total amounts spent.
+    """
+    # New dictionary to store category totals
+    category_totals = {}
+    # Validation Checks
+    if not isinstance(transactions, list):
+        raise TypeError("Transactions must be a list.")
+
+    for t in transactions:
+        if not isinstance(t, dict):
+            raise TypeError("Each transaction must be a dictionary.")
+        if 'amount' not in t or 'category' not in t:
+            raise ValueError("Each transaction must include 'amount' and 'category'.")
+        if not isinstance(t['amount'], (int, float)):
+            raise TypeError("Transaction amount must be a number.")
+        if not isinstance(t['category'], str):
+            raise TypeError("Transaction category must be a string.")
+
+        # Pull data from dictionary
+        category = t['category'].strip().title()
+        amount = t['amount']
+
+       # Calculate transaction total by category
+        if category not in category_totals:
+            category_totals[category] = 0.0
+        category_totals[category] += amount
+    
+    for category in category_totals:
+     category_totals[category] = round(category_totals[category], 2)
+
+    return category_totals
+
+# 2 - Identify Subscriptions
+def detect_recuring_payments(transactions: list) -> str:
+    """
+    Detects unique recurring subscription payments from a list of transactions.
+
+    Args:
+        transactions (list): A list of dictionaries containing transaction details.
+                             Each transaction should include:
+                             - 'subscription' (bool)
+                             - 'source' (str)
+                             - 'amount' (float or int)
+
+    Returns:
+        str: A summary of detected subscriptions.
+
+    """
+    # New set to store seen sources
+    seen_sources = set()
+    # New list to store subscriptions
+    subscription_list = []
+    # Validation Checks
+    if not isinstance(transactions, list):
+        raise TypeError("Input must be a list of transactions.")
+    
+    for t in transactions:
+        if not isinstance(t, dict):
+            raise TypeError("Each transaction must be a dictionary.")
+        # Find subscriptions in transactions
+        if t.get('subscription') == True:
+            source = t.get('source', '').strip().title()
+            # Avoid repeat subscriptions
+            if source not in seen_sources:
+                seen_sources.add(source)
+                subscription_list.append({
+                    'source': source,
+                    'amount': float(t.get('amount', 0))
+                })
+    # Return if no subscriptions present
+    if not subscription_list:
+        return "No subscriptions detected.", []
+    # Format to string
+    summary = 'Subscriptions: \n'
+    for sub in subscription_list:
+        summary += f"{sub['source']}: ${sub['amount']:.2f} per month\n"
+
+    return summary.strip()
+
+# 3 - Sum transactions and return current balance
+def calculate_account_balance(balance:float,transactions:list) -> str:
+    """
+    Calculates the remaining account balance after subtracting all transaction amounts.
+
+    Args:
+        balance (float): The starting account balance.
+        transactions (list): A list of dictionaries containing at least an 'amount' key.
+
+    Returns:
+        str: A formatted string showing the remaining account balance.
+    """
+    amount_total = 0
+    # Validation Checks
+    if not isinstance(balance, (int, float)):
+        raise TypeError("Balance must be a number.")
+    
+    for t in transactions:
+        if not isinstance(t, dict):
+            raise TypeError("Each transaction must be a dictionary.")
+        if not isinstance(t['amount'], (int, float)):
+            raise TypeError("Transaction amount must be a number.")
+        if not isinstance(t['amount'], (int, float)):
+            raise TypeError("Transaction amount must be a number.")
+        
+        amount_total += t["amount"]
+     # Calculate Current Balance
+    account_balance = balance - amount_total   
+    return f'Account Balance: ${account_balance:.2f}'
+
+# 4 - Create period summaries (monthly)
+def generate_spending_summary(transactions: list, summary_type: str = 'monthly') -> dict:
+    """
+    Generates a spending summary grouped by month.
+
+    Args:
+        transactions (list): A list of transaction dictionaries. Each must include
+                             'amount' (float) and 'date' (str in MM-DD-YYYY format).
+        summary_type (str): 'monthly' to indicate how to group the summary.
+
+    Returns:
+        dict: A dictionary with period keys and total spending values.
+    """
+    # New Dictonary to store period summaries
+    summary = {}
+    # Validation Checks
+    if summary_type.lower().strip() != 'monthly':
+        raise ValueError("summary_type must be 'monthly'")
+
+    for t in transactions:
+        if not isinstance(t, dict):
+            raise TypeError("Each transaction must be a dictionary.")
+        if 'amount' not in t or 'date' not in t:
+            raise ValueError("Each transaction must contain 'amount' and 'date'.")
+        if not isinstance(t['amount'], (int, float)):
+            raise TypeError("Transaction amount must be a number.")
+        # Pull data from transactions
+        date = t['date']
+        amount = t['amount']
+        # Validate Date format
+        if len(date) != 10 or date[2] != '-' or date[5] != '-':
+            raise ValueError(f"Invalid date format: {date}")
+        # Pull month and year from date
+        month = date[:2]
+        year = date[6:]
+        
+        if summary_type.strip().lower() == 'monthly':
+            period = f"{month}-{year}"
+        # Calculate period total
+        if period not in summary:
+            summary[period] = 0.0
+        summary[period] += amount
+    # Round to two decimal value
+    for period in summary:
+        summary[period] = round(summary[period], 2)
+
+    return summary
+
+# 5 - Flag unusual transactions
+def identify_spending_spikes(transactions: list, spending_limit: float = 100) -> str:
+    """
+    Identifies transactions that exceed a specified spending limit.
+
+    Args:
+        transactions (list): A list of dictionaries containing 'amount', 'source', and 'date'.
+        spending_limit (float): The threshold to flag a transaction. Default to 100.
+
+    Returns:
+        str: A formatted message listing flagged transactions or indicating none were found.
+    """
+    # New list to store flagged transactions
+    flagged_transactions = []
+    # Validation Checks
+    for t in transactions:
+        if not isinstance(t, dict):
+            raise TypeError("Each transaction must be a dictionary.")
+        if 'amount' not in t or 'source' not in t or 'date' not in t:
+            raise ValueError("Each transaction must include 'amount', 'source', and 'date'.")
+        if not isinstance(t['amount'], (int, float)):
+            raise TypeError("'amount' must be a number.")
+        
+        # Check if transaction exceeds spending limit
+        if t['amount'] >= spending_limit:
+            flagged_transactions.append(t)
+            
+    # Return string if no unusual spending found
+    if not flagged_transactions:
+        return "No unusual spending detected."
+
+    # Create formatted output for all flagged transactions
+    report = "Unusual spending detected:\n"
+    for ft in flagged_transactions:
+        report += f"- ${ft['amount']:.2f} from {ft['source']} on {ft['date']}\n"
+
+    return report.strip()
+
