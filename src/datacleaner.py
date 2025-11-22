@@ -1,5 +1,6 @@
 #Kevin Miele
 from typing import Any, Dict, Iterable, List, Optional
+from abc import ABC, abstractmethod
 
 class TransactionCleaner:
 
@@ -196,3 +197,193 @@ class TransactionCleaner:
     def __repr__(self) -> str:
         """Class name and size."""
         return f"{self.__class__.__name__}(rows={self.size})"
+
+###Project 3 Addition###
+class AlertRule(ABC):
+    """Abstract base class for different alert rules on transactions."""
+
+    def __init__(self, name: str) -> None:
+        self.name = name
+
+    @abstractmethod
+    def check(self, tx: Dict[str, Any]) -> Optional[str]:
+        """
+        Inspect a single transaction.
+        Return:
+          - str message if the rule is triggered
+          - None if everything is fine
+        """
+        raise NotImplementedError
+
+    def describe(self) -> str:
+        """Non-abstract method that subclasses can extend with super()."""
+        return f"Rule: {self.name}"
+####################################################################################
+class LargeTransactionRule(AlertRule):
+    """Flags transactions above a certain amount."""
+
+    def __init__(self, threshold: float = 1000.0) -> None:
+        super().__init__("Large Transaction")  # uses super()
+        self.threshold = threshold
+
+    def describe(self) -> str:
+        base = super().describe()  # method overriding + super()
+        return f"{base} (threshold ≥ {self.threshold:.2f})"
+
+    def check(self, tx: Dict[str, Any]) -> Optional[str]:
+        amount_raw = tx.get("amount")
+        try:
+            amount = float(amount_raw)
+        except (TypeError, ValueError):
+            return None  # can't interpret amount, silently skip
+
+        if amount >= self.threshold:
+            return (
+                f"{self.name}: ${amount:.2f} on {tx.get('date')} "
+                f"at {tx.get('description', 'Unknown merchant')}"
+            )
+        return None
+#####################################################################################
+class CategoryLimitRule(AlertRule):
+    """
+    Flags a single transaction that exceeds a per-transaction
+    limit for a specific category (e.g. Dining > $100).
+    """
+
+    def __init__(self, category: str, per_tx_limit: float) -> None:
+        name = f"{category} per-transaction limit"
+        super().__init__(name)  # uses super()
+        self.category = category
+        self.per_tx_limit = per_tx_limit
+
+    def check(self, tx: Dict[str, Any]) -> Optional[str]:
+        tx_category = tx.get("category")
+        if tx_category != self.category:
+            return None
+
+        amount_raw = tx.get("amount")
+        try:
+            amount = float(amount_raw)
+        except (TypeError, ValueError):
+            return None
+
+        if amount > self.per_tx_limit:
+            return (
+                f"{self.name} exceeded: ${amount:.2f} on {tx.get('date')} "
+                f"({tx.get('description', 'Unknown merchant')})"
+            )
+        return None
+########################################################################################
+class SuspiciousMerchantRule(AlertRule):
+    """
+    Flags transactions whose description contains any suspicious keyword.
+    Example keywords: ['UNKNOWN', 'MONEY TRANSFER', 'CASH APP']
+    """
+
+    def __init__(self, suspicious_keywords: List[str]) -> None:
+        super().__init__("Suspicious merchant/description")
+        # normalize keywords to lowercase for case-insensitive matching
+        self.suspicious_keywords = [kw.lower() for kw in suspicious_keywords]
+
+    def check(self, tx: Dict[str, Any]) -> Optional[str]:
+        desc = (tx.get("description") or "").lower()
+        for kw in self.suspicious_keywords:
+            if kw in desc:
+                return (
+                    f"{self.name}: matched '{kw}' in '{tx.get('description')}' "
+                    f"on {tx.get('date')}"
+                )
+        return None
+##########################################################################################
+class StatementMonitor:
+    """
+    High-level object that:
+      - owns a TransactionCleaner (composition)
+      - owns multiple AlertRule instances (composition)
+      - runs data cleaning, then applies all rules polymorphically
+    """
+
+    def __init__(
+        self,
+        rows: Iterable[Dict[str, Any]],
+        rules: Optional[List[AlertRule]] = None,
+    ) -> None:
+        # Composition: StatementMonitor has-a TransactionCleaner
+        self._cleaner = TransactionCleaner(rows)
+
+        # Composition: StatementMonitor has-a collection of AlertRule objects
+        if rules is None:
+            self._rules: List[AlertRule] = [
+                LargeTransactionRule(threshold=500.0),
+                CategoryLimitRule("Dining", per_tx_limit=120.0),
+                SuspiciousMerchantRule(["unknown", "cash app", "money transfer"]),
+            ]
+        else:
+            self._rules = rules
+
+    @property
+    def cleaner(self) -> TransactionCleaner:
+        """Expose the cleaner (read-only reference)."""
+        return self._cleaner
+
+    @property
+    def rules(self) -> List[AlertRule]:
+        """Expose the list of rules so caller can add/remove them."""
+        return list(self._rules)
+
+    def run_full_analysis(self) -> List[str]:
+        """
+        Clean all transactions and apply all alert rules.
+
+        Returns:
+          List of alert messages generated by all rules.
+        """
+        # Clean the data
+        self._cleaner.clean_all()
+
+        alerts: List[str] = []
+        # Polymorphism: every rule has a check(tx) method, but behavior differs
+        for tx in self._cleaner.transactions:
+            for rule in self._rules:
+                msg = rule.check(tx)   # same call, different subclass behavior
+                if msg is not None:
+                    alerts.append(msg)
+        return alerts
+
+############################DEMO#####################################################
+if __name__ == "__main__":
+    sample_rows = [
+        {
+            "Date": "9/1/2025",
+            "Amount": "600.00",
+            "Description": "DINING - Olive Garden #1234",
+            "category": "Dining",
+            "account": "Visa",
+        },
+        {
+            "date": "2025-09-02",
+            "amount": 50.0,
+            "description": "Grocery Store",
+            "category": "Groceries",
+            "account": "Checking",
+        },
+        {
+            "Date": "9/3/2025",
+            "Amount": "1500",
+            "Description": "UNKNOWN MONEY TRANSFER",
+            "category": "Other",
+            "account": "Checking",
+        },
+    ]
+
+    monitor = StatementMonitor(sample_rows)
+    alerts = monitor.run_full_analysis()
+
+    print("=== Rules in this monitor ===")
+    for r in monitor.rules:
+        print(" -", r.describe())
+
+    print("\n=== Alerts ===")
+    for a in alerts:
+        print(a)
+
