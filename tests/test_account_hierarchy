@@ -1,0 +1,58 @@
+"""
+Integration Tests - Account Hierarchy with Transactions
+"""
+
+import pytest
+from src.account import Account
+from src.checking_account import CheckingAccount
+from src.transaction import Transaction
+
+
+def test_checking_account_with_real_transactions():
+    """Test CheckingAccount works with Transaction class."""
+    checking = CheckingAccount("ACC001", "Main Checking", "Uzzam",
+                              overdraft_limit=500)
+    
+    # Add deposit
+    deposit = Transaction(
+        "TXN001", 1000, "2025-11-01", "Income",
+        "ACC001", "credit", "Salary"
+    )
+    checking.add_transaction(deposit)
+    
+    assert checking.balance == 1000.00
+    assert checking.calculate_available_funds() == 1500.00
+    
+    # Add expense
+    expense = Transaction(
+        "TXN002", 200, "2025-11-05", "Shopping",
+        "ACC001", "debit", "Groceries"
+    )
+    checking.add_transaction(expense)
+    
+    assert checking.balance == 800.00
+    assert checking.calculate_available_funds() == 1300.00
+
+
+def test_polymorphism_with_multiple_account_types():
+    """Test polymorphic behavior across account types."""
+    from src.savings_account import SavingsAccount
+    from src.credit_card_account import CreditCardAccount
+    
+    accounts = [
+        CheckingAccount("ACC001", "Checking", "Uzzam", overdraft_limit=500),
+        SavingsAccount("ACC002", "Savings", "Uzzam", minimum_balance=100),
+        CreditCardAccount("ACC003", "Visa", "Uzzam", credit_limit=5000)
+    ]
+    
+    # Same method call works for all
+    for account in accounts:
+        available = account.calculate_available_funds()
+        assert isinstance(available, float)
+        assert available >= 0  # Should have some funds available
+
+
+def test_cannot_instantiate_abstract_account():
+    """Verify Account base class is abstract."""
+    with pytest.raises(TypeError, match="abstract"):
+        Account("ACC001", "Test", "Uzzam")
