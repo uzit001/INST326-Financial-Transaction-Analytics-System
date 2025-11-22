@@ -407,3 +407,86 @@ if __name__ == "__main__":
 3. Add CheckingAccount-specific features (overdraft, checks)
 4. Test that polymorphism works correctly
     """)
+    
+ 
+ 
+# ══════════════════════════════════════════════════════════════════════════
+# COMPOSITION 1: Account ◆─── TransactionHistory
+# An account OWNS its transaction history. If the account is deleted,
+# the history goes with it. The history cannot exist independently.
+# ══════════════════════════════════════════════════════════════════════════
+   
+class TransactionHistory:
+    """
+    Manages the complete transaction record for an account.
+    
+    This is a COMPOSITION relationship:
+    - Created and owned by a single Account
+    - Cannot exist without its parent Account
+    - Destroyed when the Account is destroyed
+    
+    Provides filtering, searching, and analytics on transactions.
+    """
+    
+    def __init__(self, account_id: str):
+        self._account_id = account_id
+        self._transactions: List = []
+        self._created_at = datetime.now()
+    
+    def add(self, transaction) -> None:
+        """Add a transaction to history."""
+        self._transactions.append(transaction)
+    
+    def get_all(self) -> List:
+        """Return copy of all transactions."""
+        return self._transactions.copy()
+    
+    def get_by_date_range(self, start: str, end: str) -> List:
+        """Filter transactions by date range (YYYY-MM-DD)."""
+        return [t for t in self._transactions if start <= t.date <= end]
+    
+    def get_by_category(self, category: str) -> List:
+        """Filter transactions by category."""
+        return [t for t in self._transactions 
+                if getattr(t, 'category', None) == category]
+    
+    def get_by_amount_range(self, min_amt: float, max_amt: float) -> List:
+        """Filter transactions by amount range."""
+        return [t for t in self._transactions 
+                if min_amt <= abs(t.amount) <= max_amt]
+    
+    def calculate_total_income(self) -> float:
+        """Sum of all positive transactions."""
+        return sum(t.signed_amount for t in self._transactions 
+                   if t.signed_amount > 0)
+    
+    def calculate_total_expenses(self) -> float:
+        """Sum of all negative transactions (returned as positive)."""
+        return abs(sum(t.signed_amount for t in self._transactions 
+                       if t.signed_amount < 0))
+    
+    def get_monthly_summary(self, year: int, month: int) -> dict:
+        """Generate summary for a specific month."""
+        month_str = f"{year}-{month:02d}"
+        monthly_txns = [t for t in self._transactions 
+                        if t.date.startswith(month_str)]
+        
+        income = sum(t.signed_amount for t in monthly_txns if t.signed_amount > 0)
+        expenses = abs(sum(t.signed_amount for t in monthly_txns if t.signed_amount < 0))
+        
+        return {
+            "month": month_str,
+            "transaction_count": len(monthly_txns),
+            "total_income": income,
+            "total_expenses": expenses,
+            "net": income - expenses
+        }
+    
+    def __len__(self) -> int:
+        return len(self._transactions)
+    
+    def __repr__(self) -> str:
+        return f"TransactionHistory(account={self._account_id}, count={len(self)})"
+
+
+
