@@ -323,7 +323,7 @@ if __name__ == "__main__":
 import csv
 # 1-5 Keven Day 
 # 1. Find_largest_transaction  
-  """will sort transactions in order from largest to smallest by amount spent
+"""will sort transactions in order from largest to smallest by amount spent
     
     Args:
         list of the accounts 
@@ -430,7 +430,7 @@ def get_transaction_by_date_range(transactions, start_date, end_date):
     return matching_transactions
 
 # 3. compare_balance_accounts 
- """ will compare different accounts and find the diffence in balance betwneen the two
+""" will compare different accounts and find the diffence in balance betwneen the two
     Args:
         list of accounts, id1 and id2 
         
@@ -472,7 +472,7 @@ def compare_balance_accounts(accounts, id1, id2):
         "Balance Difference": difference
     }
    #  4. calculate_monthly_average
- """ will compute the total spending of accounts in that month 
+""" will compute the total spending of accounts in that month 
     Args:
         list of accounts
         
@@ -521,7 +521,7 @@ def calculate_monthly_average(transactions):
 
     return monthly_summary
 # 5. export_to_csv
- """
+"""
     Exports a list of dictionaries (data) into a CSV file.
 
     Args:

@@ -6,6 +6,7 @@ Course: INST326 Section 0302
 
 The credit account allows for charges to be made on a credit limit, intrest rates for paying back,
 """
+from src.account import Account
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import List
@@ -57,40 +58,41 @@ class CreditAccount(Account):
     # ABSTRACT METHODS 
     # ══════════════════════════════════════════════════════════════════════
     def calculate_available_funds(self):
-    """
-    Calculate available credit remaining.
+     """
+     Calculate available credit remaining.
     
-    Returns:
+     Returns:
         float: Amount of credit available to spend
-    """
-    if balance < 0
+     """
+     if balance < 0:
         return self._credit_limit - self._balance
     
-    if balance > 0:
+     if balance > 0:
         return self._credit_limit + self._balance
 
     def apply_monthly_fees(self):
-    """
+     """
     Calculate and apply monthly interest charges.
     
     Returns:
         float: Interest charged (positive number = you pay this)
     """
     # Only charge interest if there's a balance owed
-    if self._balance <= 0:  # No balance owed
+     if self._balance <= 0:  # No balance owed
         return 0.0
     
     # Calculate monthly interest
-    monthly_rate = self._apr / 100 / 12
-    interest = self._balance * monthly_rate
+     monthly_rate = self._apr / 100 / 12
+     interest = self._balance * monthly_rate
     
     # Apply interest to balance
-    self._balance += interest
-    self._total_interest_charged += interest
+     self._balance += interest
+     self._total_interest_charged += interest
     
-    return interest  # Positive = money charged
+     return interest  # Positive = money charged
+
     def can_withdraw(self, amount):
-    """
+     """
     Check if a charge is allowed (won't exceed credit limit).
     
     Args:
@@ -98,12 +100,12 @@ class CreditAccount(Account):
         
     Returns:
         tuple: (allowed, reason)
-    """
-    available = self.calculate_available_funds()
+     """
+     available = self.calculate_available_funds()
     
-    if amount <= available:
+     if amount <= available:
         return (True, "")
-    else:
+     else:
         return (False, f"Exceeds credit limit. Available credit: ${available:.2f}")
 
     # ══════════════════════════════════════════════════════════════════════
