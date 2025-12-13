@@ -1,6 +1,6 @@
 """
 Abstract Account Base Class - Project 3
-Author: Team (Uzzam lead)
+Author: Team (Uzzam)
 Course: INST326 Section 0302
 
 This module defines the abstract base class for all account types,
