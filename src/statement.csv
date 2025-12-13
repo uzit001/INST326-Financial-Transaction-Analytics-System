@@ -1,0 +1,21 @@
+Date,Amount,Description,Category,Account
+2025-09-01,2500.00,Paycheck - School District,Income,Checking
+2025-09-02,-1200.00,September Rent,Housing,Checking
+2025-09-03,-85.42,Giant Grocery Store,Groceries,Checking
+2025-09-04,-45.99,Shell Gas Station,Transportation,Checking
+2025-09-05,-9.99,Spotify Subscription,Entertainment,Checking
+2025-09-06,-120.00,Electric Company,Utilities,Checking
+2025-09-07,300.00,Transfer from Checking,Savings,Savings
+2025-09-08,-60.00,Dinner at Olive Garden,Restaurants,Checking
+2025-09-09,-15.50,Amazon Purchase,Shopping,Credit
+2025-09-10,-220.00,Car Insurance,Insurance,Checking
+2025-09-11,150.00,Freelance Tutoring Income,Income,Checking
+2025-09-12,-42.75,Target Store,Shopping,Credit
+2025-09-13,-95.00,Gas Bill,Utilities,Checking
+2025-09-14,-300.00,Transfer to Savings,Savings,Checking
+2025-09-15,500.00,Interest Deposit,Interest,Savings
+2025-09-16,-125.00,Doctor Copay,Healthcare,Credit
+2025-09-17,-8.50,Coffee Shop,Food,Checking
+2025-09-18,-75.00,Internet Bill,Utilities,Checking
+2025-09-19,-200.00,Student Loan Payment,Loans,Checking
+2025-09-20,-180.00,Clothing Store,Shopping,Credit
