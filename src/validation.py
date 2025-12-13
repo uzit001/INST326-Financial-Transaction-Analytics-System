@@ -1,12 +1,3 @@
-"""
-Financial Transaction Tracker - Function Library
-Course: INST326 Section 0302
-Team Members: Uzzam Tariq, Keven Day, Kevin Miele, Angelo Montagnino
-"""
-
-from datetime import datetime
-from typing import Any, Union, Dict, List, Tuple
-
 # ============================================================================
 # DATA VALIDATION FUNCTIONS
 # ============================================================================
