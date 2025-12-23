@@ -2,7 +2,7 @@
 
 A comprehensive Python-based personal finance management system featuring data persistence, multi-account tracking, and automated spending analysis. Built using advanced object-oriented programming principles including inheritance, polymorphism, and encapsulation.
 
-# Overview
+## Overview
 Course: INST326 - Object-Oriented Programming for Information Science  
 Institution: University of Maryland, College Park  
 Semester: Fall 2024  
