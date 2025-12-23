@@ -1,20 +1,7 @@
 # INST326: Financial Transaction Analytics System
 
-A comprehensive Python-based personal finance management system featuring data persistence, multi-account tracking, and automated spending analysis. Built using advanced object-oriented programming principles including inheritance, polymorphism, and encapsulation.
-
-# Table of Contents
-
-Overview
-Features
-System Architecture
-Installation
-Quick Start
-Usage Examples
-Testing
-Project Structure
-Team Contributions
-Technologies Used
-
+A comprehensive Python-based personal finance management system featuring data persistence, multi-account tracking, and automated spending analysis.  
+Built using advanced object-oriented programming principles including inheritance, polymorphism, and encapsulation.
 
 # Overview
 Course: INST326 - Object-Oriented Programming for Information Science
@@ -23,10 +10,11 @@ Semester: Fall 2024
 Team: Uzzam Tariq, Keven Day, Kevin Miele, Angelo Montagnino
 
 The Problem
-People struggle to track their financial decisions and understand where their money is going.\n Small recurring charges like subscriptions can add up without them realizing.
+People struggle to track their financial decisions and understand where their money is going. 
+Small recurring charges like subscriptions can add up without them realizing.
+
 Our Solution
 A Python application that:
-
 Tracks transactions across multiple account types
 Imports data from bank CSV/JSON exports
 Provides insights on spending patterns
@@ -34,7 +22,6 @@ Persists data between sessions
 Generates detailed financial reports
 
 Key Questions Answered
-
 ✅ "How much money is in my account?"
 ✅ "Which account has the most money?"
 ✅ "What transactions have I made recently?"
@@ -76,25 +63,6 @@ Error handling for corrupted/missing data
 8 Integration Tests: Cross-component coordination
 5 System Tests: End-to-end workflow validation
 95% Code Coverage: Comprehensive test suite
-
-
-# System Architecture
-Class Hierarchy
-FinancialTracker (Main System)
-    │
-    ├── Account (Abstract Base Class)
-    │   ├── CheckingAccount
-    │   ├── SavingsAccount
-    │   └── CreditCardAccount
-    │
-    ├── Transaction
-    ├── Category
-    └── DataCleaner
-Polymorphic Design
-Each account type implements specialized behavior:
-MethodCheckingAccountSavingsAccountCreditCardAccountcalculate_available_funds()Balance + OverdraftBalance - MinimumCredit Limit - Debtapply_monthly_fees()Charge feeEarn interestCharge interestcan_withdraw()Check overdraftCheck limit + balanceCheck credit
-Data Flow
-CSV/JSON Import → Validation → Cleaning → Storage → Analysis → Reporting
 
 # Installation
 Prerequisites
@@ -336,6 +304,7 @@ financial-tracker/
 ├── requirements.txt              # Python dependencies
 ├── .gitignore                   # Git ignore rules
 └── LICENSE                      # MIT License
+
 
 # Team Contributions
 Uzzam Tariq
