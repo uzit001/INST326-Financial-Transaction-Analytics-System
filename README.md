@@ -1,24 +1,23 @@
 # INST326: Financial Transaction Analytics System
 
-A comprehensive Python-based personal finance management system featuring data persistence, multi-account tracking, and automated spending analysis.  
-Built using advanced object-oriented programming principles including inheritance, polymorphism, and encapsulation.
+A comprehensive Python-based personal finance management system featuring data persistence, multi-account tracking, and automated spending analysis. Built using advanced object-oriented programming principles including inheritance, polymorphism, and encapsulation.
 
 # Overview
-Course: INST326 - Object-Oriented Programming for Information Science
-Institution: University of Maryland, College Park
-Semester: Fall 2024
+Course: INST326 - Object-Oriented Programming for Information Science  
+Institution: University of Maryland, College Park  
+Semester: Fall 2024  
 Team: Uzzam Tariq, Keven Day, Kevin Miele, Angelo Montagnino
 
-The Problem
-People struggle to track their financial decisions and understand where their money is going. 
+The Problem  
+People struggle to track their financial decisions and understand where their money is going.   
 Small recurring charges like subscriptions can add up without them realizing.
 
-Our Solution
-A Python application that:
-Tracks transactions across multiple account types
-Imports data from bank CSV/JSON exports
-Provides insights on spending patterns
-Persists data between sessions
+Our Solution  
+A Python application that:  
+Tracks transactions across multiple account types  
+Imports data from bank CSV/JSON exports  
+Provides insights on spending patterns  
+Persists data between sessions  
 Generates detailed financial reports
 
 Key Questions Answered
