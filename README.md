@@ -48,8 +48,26 @@ themselves:
 Each member created 4-5 functions in their respective categories with some 
 collaboration occuring if help was needed.
 
-All members were expected to have their portion of the project completed by
-Saturday night (October 11th).
+# Overview
+Course: INST326 - Object-Oriented Programming for Information Science
+Institution: University of Maryland, College Park
+Semester: Fall 2024
+Team: Uzzam Tariq, Keven Day, Kevin Miele, Angelo Montagnino
 
-# System Architecture
+- The Problem
+People struggle to track their financial decisions and understand where their money is going. Small recurring charges like subscriptions can add up without them realizing.
 
+- Our Solution
+A Python application that:
+Tracks transactions across multiple account types
+Imports data from bank CSV/JSON exports
+Provides insights on spending patterns
+Persists data between sessions
+Generates detailed financial reports
+
+- Key Questions Answered
+"How much money is in my account?"
+"Which account has the most money?"
+"What transactions have I made recently?"
+"Where is my money coming from?"
+"Where is my money going?"
