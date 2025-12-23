@@ -23,7 +23,7 @@ Semester: Fall 2024
 Team: Uzzam Tariq, Keven Day, Kevin Miele, Angelo Montagnino
 
 The Problem
-People struggle to track their financial decisions and understand where their money is going. Small recurring charges like subscriptions can add up without them realizing.
+People struggle to track their financial decisions and understand where their money is going.\n Small recurring charges like subscriptions can add up without them realizing.
 Our Solution
 A Python application that:
 
