@@ -29,13 +29,13 @@ A Python application that:
 
 
 ## Features
-### Multi-Account Management
+#### Multi-Account Management
 
 - Checking Accounts: Overdraft protection, check writing, monthly fees
 - Savings Accounts: Interest calculation, withdrawal limits (6/month federal regulation)
 - Credit Card Accounts: Credit limits, interest charges, rewards tracking
 
-### Data Analytics
+#### Data Analytics
 
 - Category-based spending analysis
 - Recurring payment detection (subscriptions)
@@ -43,20 +43,20 @@ A Python application that:
 - Monthly financial summaries
 - Budget vs. actual comparison
 
-### Data Persistence
+#### Data Persistence
 
 - Save/Load: JSON-based system state persistence
 - Import: CSV and JSON transaction imports from banks
 - Export: CSV reports, JSON summaries, HTML monthly reports
 
-### Data Quality
+#### Data Quality
 
 - Comprehensive validation framework (amounts, dates, categories)
 - Automated data cleaning (duplicates, standardization)
 - Error handling for corrupted/missing data
 - 98% data accuracy rate
 
-### Testing & Reliability
+#### Testing & Reliability
 
 - 30 Unit Tests: Individual component verification
 - 8 Integration Tests: Cross-component coordination
